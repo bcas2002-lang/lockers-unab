@@ -1,0 +1,21 @@
+:root { --rojo: #7B1D1D; --gris: #f4f4f4; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, Arial, sans-serif; background: var(--gris); color: #222; }
+header { background: var(--rojo); color: #fff; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; }
+header h1 { font-size: 18px; margin: 0; }
+main { padding: 16px; max-width: 520px; margin: 0 auto; }
+nav { display: flex; gap: 8px; margin-bottom: 14px; }
+nav button { flex: 1; }
+button { background: var(--rojo); color: #fff; border: 0; border-radius: 8px; padding: 10px 14px; font-size: 15px; }
+button.sec { background: #fff; color: var(--rojo); border: 1px solid var(--rojo); }
+button.act { outline: 3px solid #e9b8b8; }
+input { width: 100%; padding: 10px; margin: 6px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; }
+.card { background: #fff; border-radius: 12px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 3px #0002; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.locker { border-radius: 10px; padding: 14px 6px; text-align: center; font-weight: 600; color: #fff; }
+.Disponible { background: #2E7D32; }
+.Reservado { background: #E6A100; }
+.Ocupado { background: #B71C1C; }
+.error { color: #B71C1C; margin: 6px 0; }
+.ok { color: #2E7D32; margin: 6px 0; font-weight: 600; }
+.centro { text-align: center; }
