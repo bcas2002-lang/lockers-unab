@@ -10,7 +10,7 @@ import authRoutes from './routes/auth.js';
 import lockerRoutes from './routes/lockers.js';
 import reservaRoutes from './routes/reservas.js';
 
-const origin = process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : '*';
+const origin = '*';
 const app = express();
 app.use(cors({ origin }));
 app.use(express.json());
