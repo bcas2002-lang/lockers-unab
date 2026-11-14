@@ -86,36 +86,53 @@ function MisReservas({ token }) {
   const [codigo, setCodigo] = useState('');
   const [msg, setMsg] = useState({ t: '', ok: false });
   const cargar = () => api('/reservas/mias', { token }).then(setRs);
-  useEffect(() => { cargar(); }, []);
 
-  async function abrir(c) {
+  useEffect(() => {
+    cargar();
+    const s = io(BASE);
+    s.on('locker:update', cargar);
+    return () => s.disconnect();
+  }, []);
+
+  async function accion(ruta, body, texto) {
     try {
-      const d = await api('/reservas/abrir', { method: 'POST', token, body: { codigo: c } });
-      setMsg({ t: `Locker ${d.locker} abierto`, ok: true }); cargar();
+      await api(ruta, { method: 'POST', token, body });
+      setMsg({ t: texto, ok: true }); cargar();
     } catch (e) { setMsg({ t: e.message, ok: false }); }
   }
+  const abrir = (c) => accion('/reservas/abrir', { codigo: c }, 'Locker abierto');
+
   return (
     <>
       {rs.length === 0 && <div className="card">Aún no tienes reservas.</div>}
-      {rs.map((r) => (
-        <div className="card centro" key={r._id}>
-          <b>{r.locker.codigo}</b> · {r.estado} · vence {new Date(r.expiraAt).toLocaleString('es-CL')}
-          {r.estado !== 'expirada' && (<>
-            <div style={{ margin: 12 }}><QRCodeSVG value={r.token} size={160} /></div>
-            <div>PIN: <b>{r.pin}</b></div>
-          </>)}
-        </div>
-      ))}
+      {rs.map((r) => {
+        const vigente = r.estado === 'activa' || r.estado === 'usada';
+        const est = r.locker?.estado;
+        return (
+          <div className="card centro" key={r._id}>
+            <b>{r.locker?.codigo}</b> · reserva {r.estado}
+            {vigente && <div className={`locker ${est}`} style={{ margin: '10px 0' }}>{est}</div>}
+            {vigente && (<>
+              <div style={{ margin: 12 }}><QRCodeSVG value={r.token} size={150} /></div>
+              <div>PIN: <b>{r.pin}</b> · vence {new Date(r.expiraAt).toLocaleString('es-CL')}</div>
+              <div style={{ marginTop: 10, display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+                {est !== 'Abierto' && <button onClick={() => abrir(r.token)}>Abrir locker</button>}
+                {est === 'Abierto' && <button onClick={() => accion(`/reservas/${r._id}/cerrar`, {}, 'Locker cerrado')}>Cerrar locker</button>}
+                <button className="sec" onClick={() => accion(`/reservas/${r._id}/liberar`, {}, 'Locker liberado')}>Terminar y liberar</button>
+              </div>
+            </>)}
+          </div>
+        );
+      })}
       <div className="card">
         <h3>Simulador de cerradura</h3>
         <input placeholder="Pega el código del QR o escribe el PIN" value={codigo} onChange={(e) => setCodigo(e.target.value)} />
-        <button onClick={() => abrir(codigo)}>Abrir</button>
+        <button onClick={() => abrir(codigo)}>Abrir con código</button>
         {msg.t && <div className={msg.ok ? 'ok' : 'error'}>{msg.t}</div>}
       </div>
     </>
   );
 }
-
 /* ---------- App ---------- */
 export default function App() {
   const [sesion, setSesion] = useState(() => JSON.parse(localStorage.getItem('sesion') || 'null'));

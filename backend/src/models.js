@@ -12,7 +12,7 @@ export const User = model('User', new Schema({
 export const Locker = model('Locker', new Schema({
   codigo: { type: String, required: true, unique: true },
   ubicacion: { type: String, default: 'Biblioteca' },
-  estado: { type: String, enum: ['Disponible', 'Reservado', 'Ocupado'], default: 'Disponible' },
+    estado: { type: String, enum: ['Disponible', 'Reservado', 'Abierto', 'Ocupado'], default: 'Disponible' },
   tarifaHora: { type: Number, default: 500 }
 }));
 
@@ -24,5 +24,5 @@ export const Reserva = model('Reserva', new Schema({
   token: String,                                        // contenido del QR
   pin: String,                                          // alternativa al QR
   expiraAt: Date,
-  estado: { type: String, enum: ['activa', 'usada', 'expirada'], default: 'activa' }
+  estado: { type: String, enum: ['activa', 'usada', 'expirada', 'finalizada'], default: 'activa' }
 }, { timestamps: true }));
