@@ -138,7 +138,7 @@ export default function App() {
   const [sesion, setSesion] = useState(() => JSON.parse(localStorage.getItem('sesion') || 'null'));
   const [vista, setVista] = useState('lockers');
   const guardar = (d) => { localStorage.setItem('sesion', JSON.stringify(d)); setSesion(d); };
-  const salir = () => { localStorage.removeItem('sesion'); setSesion(null); };
+  const salir = () => { localStorage.removeItem('sesion'); setSesion(null); setVista('lockers'); };
 
   return (
     <>
@@ -152,12 +152,66 @@ export default function App() {
           <nav>
             <button className={vista === 'lockers' ? '' : 'sec'} onClick={() => setVista('lockers')}>Lockers</button>
             <button className={vista === 'mias' ? '' : 'sec'} onClick={() => setVista('mias')}>Mis reservas</button>
+            {sesion.rol === 'admin' && (
+              <button className={vista === 'admin' ? '' : 'sec'} onClick={() => setVista('admin')}>Admin</button>
+            )}
           </nav>
-          {vista === 'lockers'
-            ? <Lockers token={sesion.token} onReservado={() => setVista('mias')} />
-            : <MisReservas token={sesion.token} />}
+          {vista === 'lockers' && <Lockers token={sesion.token} onReservado={() => setVista('mias')} />}
+          {vista === 'mias' && <MisReservas token={sesion.token} />}
+          {vista === 'admin' && <Admin token={sesion.token} />}
         </>)}
       </main>
+    </>
+  );
+}
+/* ---------- Panel de administrador: liberar lockers ---------- */
+function Admin({ token }) {
+  const [lockers, setLockers] = useState([]);
+  const [rs, setRs] = useState([]);
+  const [msg, setMsg] = useState({ t: '', ok: false });
+
+  const cargar = () => {
+    api('/lockers', { token }).then(setLockers).catch(() => {});
+    api('/lockers/admin/reservas', { token }).then(setRs).catch((e) => setMsg({ t: e.message, ok: false }));
+  };
+  useEffect(() => {
+    cargar();
+    const s = io(BASE);
+    s.on('locker:update', cargar);
+    return () => s.disconnect();
+  }, []);
+
+  async function liberar(id, codigo) {
+    try {
+      await api(`/lockers/admin/${id}/liberar`, { method: 'POST', token, body: {} });
+      setMsg({ t: `Locker ${codigo} liberado`, ok: true });
+    } catch (e) { setMsg({ t: e.message, ok: false }); }
+  }
+  async function liberarTodos() {
+    if (!window.confirm('¿Liberar TODOS los lockers?')) return;
+    try {
+      const d = await api('/lockers/admin/liberar-todos', { method: 'POST', token, body: {} });
+      setMsg({ t: `${d.liberados} lockers liberados`, ok: true });
+    } catch (e) { setMsg({ t: e.message, ok: false }); }
+  }
+  const quien = (l) => rs.find((x) => x.locker?._id === l._id)?.usuario;
+
+  return (
+    <>
+      <div className="card fila">
+        <b>Panel de administrador</b>
+        <button onClick={liberarTodos}>Liberar todos</button>
+      </div>
+      {msg.t && <div className={msg.ok ? 'ok' : 'error'}>{msg.t}</div>}
+      {lockers.map((l) => (
+        <div className="card fila" key={l._id}>
+          <div>
+            <b>{l.codigo}</b> <span className={`chip ${l.estado}`}>{l.estado}</span>
+            {quien(l) && <div style={{ fontSize: 13, color: '#666' }}>{quien(l).nombre} · {quien(l).email}</div>}
+          </div>
+          <button className="sec" disabled={l.estado === 'Disponible'} onClick={() => liberar(l._id, l.codigo)}>Liberar</button>
+        </div>
+      ))}
     </>
   );
 }
