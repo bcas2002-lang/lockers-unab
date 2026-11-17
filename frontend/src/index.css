@@ -1,4 +1,5 @@
 :root { --rojo: #7B1D1D; --gris: #f4f4f4; }
+.Abierto { background: #1565C0; }
 * { box-sizing: border-box; }
 body { margin: 0; font-family: system-ui, Arial, sans-serif; background: var(--gris); color: #222; }
 header { background: var(--rojo); color: #fff; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; }
@@ -19,3 +20,5 @@ input { width: 100%; padding: 10px; margin: 6px 0; border: 1px solid #ccc; borde
 .error { color: #B71C1C; margin: 6px 0; }
 .ok { color: #2E7D32; margin: 6px 0; font-weight: 600; }
 .centro { text-align: center; }
+.fila { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.chip { padding: 4px 10px; font-size: 13px; border-radius: 8px; color: #fff; font-weight: 600; }
