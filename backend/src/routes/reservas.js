@@ -51,8 +51,29 @@ r.post('/abrir', auth, async (req, res) => {
     return res.status(403).json({ error: 'Llave expirada' });
   }
   reserva.estado = 'usada'; await reserva.save();
-  reserva.locker.estado = 'Ocupado'; await reserva.locker.save(); avisar(req, reserva.locker);
+  reserva.locker.estado = 'Abierto'; await reserva.locker.save(); avisar(req, reserva.locker);
   res.json({ abierto: true, locker: reserva.locker.codigo });
+});
+
+// Cerrar la puerta: el locker queda Ocupado (con las cosas dentro)
+r.post('/:id/cerrar', auth, async (req, res) => {
+  const reserva = await Reserva.findOne({
+    _id: req.params.id, usuario: req.user.id, estado: { $in: ['activa', 'usada'] }
+  }).populate('locker');
+  if (!reserva) return res.status(404).json({ error: 'Reserva no encontrada' });
+  reserva.locker.estado = 'Ocupado'; await reserva.locker.save(); avisar(req, reserva.locker);
+  res.json({ ok: true });
+});
+
+// Terminar y liberar: la reserva finaliza y el locker vuelve a Disponible
+r.post('/:id/liberar', auth, async (req, res) => {
+  const reserva = await Reserva.findOne({
+    _id: req.params.id, usuario: req.user.id, estado: { $in: ['activa', 'usada'] }
+  }).populate('locker');
+  if (!reserva) return res.status(404).json({ error: 'Reserva no encontrada' });
+  reserva.estado = 'finalizada'; await reserva.save();
+  reserva.locker.estado = 'Disponible'; await reserva.locker.save(); avisar(req, reserva.locker);
+  res.json({ ok: true });
 });
 
 export default r;
